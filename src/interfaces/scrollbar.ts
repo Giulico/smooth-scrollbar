@@ -98,11 +98,11 @@ export interface Scrollbar {
   removeListener(fn: ScrollListener): void;
 
   addTransformableMomentum(x: number, y: number, fromEvent: Event, callback?: AddTransformableMomentumCallback): void;
-  addMomentum(x: number, y: number): void;
-  setMomentum(x: number, y: number): void;
+  addMomentum(x: number, y: number, z: number): void;
+  setMomentum(x: number, y: number, z?: number): void;
 
   scrollTo(x?: number, y?: number, duration?: number, options?: Partial<ScrollToOptions>): void;
-  setPosition(x?: number, y?: number, options?: Partial<SetPositionOptions>): void;
+  setPosition(x?: number, y?: number, z?: number, options?: Partial<SetPositionOptions>): void;
   scrollIntoView(elem: HTMLElement, options?: Partial<ScrollIntoViewOptions>): void;
 
   updatePluginOptions(pluginName: string, options?: any): void;

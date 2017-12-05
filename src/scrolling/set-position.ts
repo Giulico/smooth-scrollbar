@@ -9,6 +9,7 @@ export function setPosition(
   scrollbar: I.Scrollbar,
   x: number,
   y: number,
+  z: number = 0,
 ): I.ScrollStatus | null {
   const {
     options,
@@ -21,6 +22,7 @@ export function setPosition(
   if (options.renderByPixels) {
     x = Math.round(x);
     y = Math.round(y);
+    z = Math.round(z);
   }
 
   x = clamp(x, 0, limit.x);
@@ -40,9 +42,10 @@ export function setPosition(
 
   offset.x = x;
   offset.y = y;
+  offset.z = z;
 
   setStyle(contentEl, {
-    '-transform': `translate3d(${-x}px, ${-y}px, 0)`,
+    '-transform': `translate3d(${-x}px, ${-y}px, ${-z}px)`,
   });
 
   track.update();

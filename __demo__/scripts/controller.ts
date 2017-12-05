@@ -1,8 +1,9 @@
 import * as dat from 'dat-gui';
 import Scrollbar from 'smooth-scrollbar';
-import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
+// import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
+import Scroll3d from 'smooth-scrollbar/plugins/scroll3d';
 
-Scrollbar.use(OverscrollPlugin);
+Scrollbar.use(Scroll3d);
 
 const options = {
   damping: 0.1,
@@ -20,18 +21,22 @@ const overscrollOptions = {
   glowColor: '#222a2d',
 };
 
+const scroll3dOptions = {};
+
 const scrollbars = [
   Scrollbar.init(document.getElementById('main-scrollbar') as HTMLElement, {
     ...options,
     wheelEventTarget: document,
     plugins: {
-      overscroll: { ...overscrollOptions },
+      // overscroll: { ...overscrollOptions },
+      scroll3d: { ...scroll3dOptions },
     },
   }),
   Scrollbar.init(document.getElementById('inner-scrollbar') as HTMLElement, {
     ...options,
     plugins: {
-      overscroll: { ...overscrollOptions },
+      // overscroll: { ...overscrollOptions },
+      scroll3d: { ...scroll3dOptions },
     },
   }),
 ];

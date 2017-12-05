@@ -2,4 +2,5 @@
 export type Data2d = {
   x: number,
   y: number,
+  z?: number,
 };

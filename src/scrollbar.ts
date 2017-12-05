@@ -68,6 +68,7 @@ export class Scrollbar implements I.Scrollbar {
   offset = {
     x: 0,
     y: 0,
+    z: 0,
   };
 
   /**
@@ -76,6 +77,7 @@ export class Scrollbar implements I.Scrollbar {
   limit = {
     x: Infinity,
     y: Infinity,
+    z: Infinity,
   };
 
   /**
@@ -127,11 +129,15 @@ export class Scrollbar implements I.Scrollbar {
     this.setPosition(x, this.scrollTop);
   }
 
+  get scrollZ() {
+    return this.offset.z;
+  }
+
   private _renderID: number;
   private _observer: MutationObserver;
   private _plugins: I.ScrollbarPlugin[] = [];
 
-  private _momentum = { x: 0, y: 0 };
+  private _momentum = { x: 0, y: 0, z: 0 };
   private _listeners = new Set<I.ScrollListener>();
 
   constructor(
@@ -180,7 +186,7 @@ export class Scrollbar implements I.Scrollbar {
     // preserve scroll offset
     const { scrollLeft, scrollTop } = containerEl;
     containerEl.scrollLeft = containerEl.scrollTop = 0;
-    this.setPosition(scrollLeft, scrollTop, {
+    this.setPosition(scrollLeft, scrollTop, 0, {
       withoutCallbacks: true,
     });
 
@@ -242,9 +248,10 @@ export class Scrollbar implements I.Scrollbar {
   setPosition(
     x = this.offset.x,
     y = this.offset.y,
+    z = this.offset.z,
     options: Partial<I.SetPositionOptions> = {},
   ) {
-    const status = setPosition(this, x, y);
+    const status = setPosition(this, x, y, z);
 
     if (!status || options.withoutCallbacks) {
       return;
@@ -308,13 +315,19 @@ export class Scrollbar implements I.Scrollbar {
     this._updateDebounced();
 
     const finalDelta = this._plugins.reduce((delta, plugin) => {
-      return plugin.transformDelta(delta, fromEvent) || delta;
-    }, { x, y });
+
+      const transformedDelta = plugin.transformDelta(delta, fromEvent);
+
+      return (typeof transformedDelta === 'object')
+        ? Object.assign({}, delta, transformedDelta)
+        : delta;
+
+    }, { x, y, z: 0 });
 
     const willScroll = !this._shouldPropagateMomentum(finalDelta.x, finalDelta.y);
 
     if (willScroll) {
-      this.addMomentum(finalDelta.x, finalDelta.y);
+      this.addMomentum(finalDelta.x, finalDelta.y, finalDelta.z);
     }
 
     if (callback) {
@@ -325,31 +338,37 @@ export class Scrollbar implements I.Scrollbar {
   /**
    * Increases scrollbar's momentum
    */
-  addMomentum(x: number, y: number) {
+  addMomentum(x: number, y: number, z: number = 0) {
     this.setMomentum(
       this._momentum.x + x,
       this._momentum.y + y,
+      z,
     );
   }
 
   /**
    * Sets scrollbar's momentum to given value
    */
-  setMomentum(x: number, y: number) {
+  setMomentum(x: number, y: number, z: number = 0) {
     if (this.limit.x === 0) {
       x = 0;
     }
     if (this.limit.y === 0) {
       y = 0;
     }
+    if (this.limit.z === 0) {
+      z = 0;
+    }
 
     if (this.options.renderByPixels) {
       x = Math.round(x);
       y = Math.round(y);
+      z = Math.round(z);
     }
 
     this._momentum.x = x;
     this._momentum.y = y;
+    this._momentum.z = z;
   }
 
   /**
@@ -444,7 +463,7 @@ export class Scrollbar implements I.Scrollbar {
     if (!options.continuousScrolling) return false;
 
     // force an update when scrollbar is "unscrollable", see #106
-    if (limit.x === 0 && limit.y === 0) {
+    if (limit.x === 0 && limit.y === 0 && limit.z === 0) {
       this._updateDebounced();
     }
 
@@ -475,7 +494,7 @@ export class Scrollbar implements I.Scrollbar {
       _momentum.x = nextX.momentum;
       _momentum.y = nextY.momentum;
 
-      this.setPosition(nextX.position, nextY.position);
+      this.setPosition(nextX.position, nextY.position, _momentum.z);
     }
 
     const remain = { ...this._momentum };
